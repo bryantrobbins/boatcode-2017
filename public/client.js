@@ -1,5 +1,3 @@
-// Create WebSocket connection.
-
 var newClient = function newClient() {
     var socket;
     var clientId;
@@ -21,25 +19,29 @@ var newClient = function newClient() {
 };
 
 const client = newClient();
-$(document).ready(function() {
-    $("#button").click(function() {
-        $('#results').html('')
-        new Spinner().spin($('#results')[0])
-        var request = { messageType: 'jobSubmit'}
-        client.getSocket().send(JSON.stringify(request));
-    });
-});
+function buttonClickHandler() {
+    var resultsElem = document.getElementById('jobResults');
+    resultsElem.innerHTML = '';
+    new Spinner().spin(resultsElem)
+    var request = { messageType: 'jobSubmit'}
+    client.getSocket().send(JSON.stringify(request));
+    console.log("Job Submitted")
+}
 
-// Listen for messages
-console.log(client);
+document.addEventListener("DOMContentLoaded", function() {
+    document.getElementById('submitButton')
+        .addEventListener('click', buttonClickHandler);
+});
 
 client.getSocket().addEventListener('message', function (event) {
     var message = JSON.parse(event.data)
     switch(message.messageType) {
         case 'jobResult':
-            $("#results").html(message.body);
+            console.log("Receieved Results: " + message.body)
+            document.getElementById('jobResults').innerHTML = message.body;
+            console.log("Results Updated")
             break;
         default:
             console.log("Unknown message of type " + message.messageType + " received from server");
-    }    
+    }
 });
