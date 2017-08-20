@@ -15,6 +15,7 @@ const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
 wss.on('connection', function connection(ws, req) {
+    console.log("Received client connection");
 //  const location = url.parse(req.url, true);
 //  // You might use location.query.access_token to authenticate or share sessions
 //  // or req.headers.cookie (see http://stackoverflow.com/a/16395220/151312)
@@ -24,7 +25,7 @@ wss.on('connection', function connection(ws, req) {
         var messageObj = JSON.parse(message)
         switch(messageObj.messageType) {
             case 'jobSubmit':
-                var svg = '<svg width="300" height="200"> <rect width="100%" height="100%" fill="purple" /></svg>'
+                var svg = `<svg width="300" height="200"> <rect width="100%" height="100%" fill="${messageObj.body.color}" /></svg>`;
                 var response = { messageType: 'jobResult', body: svg }
                 ws.send(JSON.stringify(response))
                 break;
