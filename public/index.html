@@ -1,16 +1,12 @@
-<script src="https://spin.js.org/spin.min.js"></script>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-<script>
-$(document).ready(function() {
-    $("#button").click(function() {
-        $('#results').html('')
-        var spinner = new Spinner().spin($('#results')[0])
-		$.get("/svg", function(result) {
-            $("#results").html(result);
-        });
-    });
-});
-</script>
+<html>
+<head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/spin.js/2.3.2/spin.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="client.js"></script>
+</head>
+<body>
 <button id="button">Submit Job</button>
 <div id="results">
 </div>
+</body>
+</html>
