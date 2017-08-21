@@ -4,6 +4,11 @@ const http = require('http');
 const url = require('url');
 const WebSocket = require('ws');
 const app = express()
+const fs = require('fs-extra');
+
+function loadSvg(jobId) {
+    return fs.readFileSync(`output/${jobId}.svg`, {encoding: 'utf-8'});
+}
 
 app.get('/health', function (req, res) {
   res.send('UP');
@@ -25,9 +30,9 @@ wss.on('connection', function connection(ws, req) {
         var messageObj = JSON.parse(message)
         switch(messageObj.messageType) {
             case 'jobSubmit':
-                var svg = `<svg width="300" height="200"> <rect width="100%" height="100%" fill="${messageObj.body.color}" /></svg>`;
+                var svg = loadSvg('test');
                 var response = { messageType: 'jobResult', body: svg }
-                ws.send(JSON.stringify(response))
+                ws.send(JSON.stringify(response));
                 break;
             default:
                 console.log('Unknown message type ' + messageObj.messageType + ' received from client')
