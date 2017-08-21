@@ -3,11 +3,17 @@ const path = require('path');
 const http = require('http');
 const url = require('url');
 const WebSocket = require('ws');
-const app = express()
+const app = express();
 const fs = require('fs-extra');
 
-function loadSvg(jobId) {
-    return fs.readFileSync(`output/${jobId}.svg`, {encoding: 'utf-8'});
+function withSvg(jobId, callback) {
+    fs.readFile(`output/${jobId}.svg`, {encoding: 'utf-8'}, (err, data) => {
+        if(err) {
+            console.log(err);
+            return;
+        }
+        callback(data);
+    });
 }
 
 app.get('/health', function (req, res) {
@@ -30,9 +36,10 @@ wss.on('connection', function connection(ws, req) {
         var messageObj = JSON.parse(message)
         switch(messageObj.messageType) {
             case 'jobSubmit':
-                var svg = loadSvg('test');
-                var response = { messageType: 'jobResult', body: svg }
-                ws.send(JSON.stringify(response));
+                withSvg('test', function(svg) {
+                    var response = { messageType: 'jobResult', body: svg }
+                    ws.send(JSON.stringify(response));
+                });
                 break;
             default:
                 console.log('Unknown message type ' + messageObj.messageType + ' received from client')
