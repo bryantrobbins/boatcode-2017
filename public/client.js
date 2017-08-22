@@ -16,6 +16,7 @@ var newClient = function newClient() {
     }
 
     var clientId;
+    var resultsVersion = -1;
     
     return {
         getSocket: function () {
@@ -42,6 +43,12 @@ var newClient = function newClient() {
         },
         setClientId: function (newClientId) {
             clientId = newClientId;
+        },
+        getResultsVersion: function() {
+            return resultsVersion;
+        },
+        setResultsVersion(newVersion) {
+            resultsVersion = newVersion;
         }
     };
 };
@@ -50,9 +57,10 @@ const client = newClient();
 function buttonClickHandler() {
     var resultsElem = document.getElementById('jobResults');
     resultsElem.innerHTML = '';
-    var selectedColor = document.getElementById('colorpicker').value
+    var selectedColor = document.getElementById('colorpicker').value;
     new Spinner().spin(resultsElem);
     const jobInfo = {
+        clientId: client.getClientId(),
         color: selectedColor
     };
     client.submitJob(jobInfo);
@@ -60,13 +68,21 @@ function buttonClickHandler() {
 }
 
 document.addEventListener("DOMContentLoaded", function() {
-    document.getElementById('submitButton')
-        .addEventListener('click', buttonClickHandler);
+    // Add click handler for submit button
+    var submitButton = document.getElementById('submitButton');
+    submitButton.addEventListener('click', buttonClickHandler);
 });
 
-console.log('Registering callback')
 client.listen('jobResult', function(body) {
-    console.log("Receieved Results: " + body);
-    document.getElementById('jobResults').innerHTML = body;
-    console.log("Results Updated");
+    if(body.version > client.getResultsVersion()) {
+        document.getElementById('jobResults').innerHTML = body.svg;
+        client.setResultsVersion(body.version);
+        console.log("Results Updated");
+    }
+});
+
+client.listen('socketReady', function(body) {
+    client.setClientId(body.clientId);
+    console.log("Socket ready");
+    document.getElementById('submitButton').disabled = false;
 });
