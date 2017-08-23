@@ -16,6 +16,7 @@ var newClient = function newClient() {
     }
 
     var clientId;
+    var datasets;
     var resultsVersion = -1;
     
     return {
@@ -44,6 +45,12 @@ var newClient = function newClient() {
         setClientId: function (newClientId) {
             clientId = newClientId;
         },
+        getDatasets: function() {
+            return datasets;  
+        },
+        setDatasets: function(newDatasets) {
+            datasets = newDatasets;
+        },
         getResultsVersion: function() {
             return resultsVersion;
         },
@@ -57,11 +64,11 @@ const client = newClient();
 function buttonClickHandler() {
     var resultsElem = document.getElementById('jobResults');
     resultsElem.innerHTML = '';
-    var selectedColor = document.getElementById('colorpicker').value;
+    var selectedDataset = document.getElementById('select-dataset').value;
     new Spinner().spin(resultsElem);
     const jobInfo = {
         clientId: client.getClientId(),
-        color: selectedColor
+        dataset: selectedDataset
     };
     client.submitJob(jobInfo);
     console.log("Job Submitted");
@@ -83,6 +90,14 @@ client.listen('jobResult', function(body) {
 
 client.listen('socketReady', function(body) {
     client.setClientId(body.clientId);
-    console.log("Socket ready");
+    client.setDatasets(body.datasets)
     document.getElementById('submitButton').disabled = false;
+    var selectDataset = document.getElementById('select-dataset');
+    var frag = document.createDocumentFragment();
+    for (var ds in client.getDatasets()) {
+        var elOption = frag.appendChild(document.createElement('option'));
+        elOption.text = client.getDatasets()[ds].name;
+        elOption.value = ds
+    }
+    selectDataset.appendChild(frag);
 });

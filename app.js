@@ -14,6 +14,14 @@ fs.mkdirSync(outputDir)
 
 var nextVersion = {};
 
+var datasets = {
+    Lahman_Batting: {
+        name: 'Lahman 2014: Batting',
+        source: 'data/lahman/Batting.csv',
+        keyCols: ['playerID', 'stint', 'yearID']
+    }
+};
+
 function runJob(input, ws) {
     console.log(`Starting job for client ${input.clientId}`);
 
@@ -26,10 +34,17 @@ function runJob(input, ws) {
     }
 
     console.log(nextVersion);
+    var dsInfo = datasets[input.dataset]
     var outputDir = path.join(__dirname, 'output');
     var jobScript = path.join(__dirname, 'r-scripts', 'job.R');
     var outputFile = `${outputDir}/${input.clientId}_v${version}.svg`;
-    shell.exec(`Rscript ${jobScript} ${outputFile}`);
+    var jobInput = {
+        outputFile: outputFile,
+        dsSource: dsInfo.source,
+        dsKeys: dsInfo.keys
+    };
+    var jobInputEnc = new Buffer(JSON.stringify(jobInput)).toString('base64');
+    shell.exec(`Rscript ${jobScript} ${jobInputEnc}`);
 
     withFile(outputFile, function(svg) {
         console.log("Posting results");
@@ -58,12 +73,8 @@ const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
 wss.on('connection', function connection(ws, req) {
-    console.log("Received client connection");
-//  const location = url.parse(req.url, true);
-//  // You might use location.query.access_token to authenticate or share sessions
-//  // or req.headers.cookie (see http://stackoverflow.com/a/16395220/151312)
     var clientId = uuidv4();
-    ws.send(JSON.stringify({messageType: 'socketReady', body: {clientId: clientId}}));
+    ws.send(JSON.stringify({messageType: 'socketReady', body: {clientId: clientId, datasets: datasets}}));
     ws.on('message', function incoming(message) {
         console.log('received: %s', message);
         var messageObj = JSON.parse(message);
